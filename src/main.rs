@@ -1,14 +1,10 @@
 use std::net::{TcpListener, TcpStream, Shutdown};
 use std::io::{Read, Write};
 use std::thread;
-extern crate ansi_term;
-extern crate byteorder;
-use byteorder::BigEndian;
-use byteorder::ReadBytesExt;
-use ansi_term::Colour::*;
-//Globals
 mod constants;
 use constants::{STANDARD_COLOR,SUCCESS_COLOR,FAIL_COLOR,MING_DATA_COLOR,PORT_NUMBER_VECTOR,WALTON_DATA_COLOR,AMOUNT_GPU};
+use constants::{print_color, print_block};
+
 fn main() {
     print_color(&"Walton Proxy written in Rust".to_string(), &STANDARD_COLOR.to_owned());
     thread::spawn(|| {
@@ -16,6 +12,7 @@ fn main() {
     });
     start_server_10241();
 }
+
 fn start_server_10241(){
     let server_address = "127.0.0.1:10241";
     let listener = TcpListener::bind(&server_address).unwrap();
@@ -35,6 +32,7 @@ fn start_server_10241(){
         }
     }
 }
+
 fn start_server_12125(){
     let server_address = "127.0.0.1:12125";
     let listener = TcpListener::bind(&server_address).unwrap();
@@ -54,6 +52,7 @@ fn start_server_12125(){
         }
     }
 }
+
 fn handle_client_10241(mut _walton_exe_socket: TcpStream){
     _walton_exe_socket.set_nodelay(true).unwrap();
     //Init first TcpStream
@@ -75,7 +74,6 @@ fn handle_client_10241(mut _walton_exe_socket: TcpStream){
         match  _walton_result{
             Ok(walton_exe_socket) => {
                 if walton_exe_socket>0{
-                    //send to all ming_run.exe files
                     print_color(&format!("Received {} bytes from ming_run.exe on port 10241", walton_exe_socket),&MING_DATA_COLOR.to_owned());
                     let _packets_received = &packets_received_socket.get(0..walton_exe_socket).unwrap();
                     print_color(&format!("Receiving: {:?}", _packets_received.to_vec()),&MING_DATA_COLOR.to_owned());
@@ -93,6 +91,7 @@ fn handle_client_10241(mut _walton_exe_socket: TcpStream){
             }
         }
 }
+
 fn handle_client_12125(mut _walton_exe_socket: TcpStream){
     _walton_exe_socket.set_nodelay(true).unwrap();
     //Init first TcpStream
@@ -123,10 +122,6 @@ fn handle_client_12125(mut _walton_exe_socket: TcpStream){
                             let mut p:Vec<u8> = _packets_received.to_vec(); //Replace Difficulty
 //                            p[45]=200; //255 easiest difficulty
 //                            p[0]=0; // set 0 or 1 for start new block
-//                            p[1]=1;
-//                            p[2]=0;
-//                            p[3]=0;
-//                            p[4]=0;
                             _msocket.write_all(&p).unwrap();
                             print_color(&format!("Sent bytes to ming_run.exe running on port: {}",  _msocket.peer_addr().unwrap()),&WALTON_DATA_COLOR.to_owned());
                             _msocket.shutdown(Shutdown::Both).expect("Shutdown call failed");
@@ -139,6 +134,7 @@ fn handle_client_12125(mut _walton_exe_socket: TcpStream){
                 }
             }
 }
+
 fn print_44(packets: &Vec<u8>){
     print_color("Formatted:",&MING_DATA_COLOR.to_owned());
     let unidentified_1 = packets.get(0..2).unwrap();
@@ -150,6 +146,7 @@ fn print_44(packets: &Vec<u8>){
     print_color(&format!("  Input Value   : {:?}",&input.to_vec()),&STANDARD_COLOR.to_owned());
     print_color(&format!("  Input Nonce   : {:?}",&input_nonce.to_vec()),&STANDARD_COLOR.to_owned());
 }
+
 fn print_96(packets: &Vec<u8>){
     print_color("Formatted:",&WALTON_DATA_COLOR.to_owned());
     let block_number = packets.get(1..5).unwrap();  //Byte Index 1-4 - Index 0 = set/stop
@@ -165,22 +162,4 @@ fn print_96(packets: &Vec<u8>){
     print_color(&format!("  Input   Val: {:?}",&input_val.to_vec()),&SUCCESS_COLOR.to_owned());
     print_color(&format!("  Target  Val: {:?}",&target_val.to_vec()),&SUCCESS_COLOR.to_owned());
 }
-fn print_color(input:&str,color:&String) {
-    if color.contains("red"){
-        println!("{}",Red.paint(input));
-    }else if color.contains("blue"){
-        println!("{}",Blue.paint(input));
-    }else if color.contains("green"){
-        println!("{}",Green.paint(input));
-    }else if color.contains("yellow"){
-        println!("{}",Yellow.paint(input));
-    }else if color.contains("purple"){
-        println!("{}",Purple.paint(input));
-    }else if color.contains("cyan"){
-        println!("{}",Cyan.paint(input));
-    }
-}
-fn print_block(mut slice: &[u8]) {
-    let num = slice.read_u32::<BigEndian>().unwrap();
-    print_color(&format!("  BlockNumber: {}",num),&SUCCESS_COLOR.to_owned());
-}
+
