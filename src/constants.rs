@@ -1,6 +1,8 @@
 extern crate ansi_term;
 extern crate byteorder;
+extern crate rand;
 
+use self::rand::Rng;
 use self::byteorder::BigEndian;
 use self::byteorder::ReadBytesExt;
 use constants::ansi_term::Colour::*;
@@ -12,6 +14,16 @@ pub static WALTON_DATA_COLOR: &'static str = "cyan";
 pub static MING_DATA_COLOR: &'static str = "purple";
 pub static AMOUNT_GPU: &'static i32 = &1;
 pub static PORT_NUMBER_START: &'static i32 = &12140;
+
+pub fn generate_randoms() -> Vec<i32> {
+    let mut random_numbers: Vec<i32> = Vec::new();
+    for x in 0..1000 {
+        let num = rand::thread_rng().gen_range(100000, 1000000);
+        random_numbers.push(num);
+        println!("Generated {}", num);
+    }
+    return random_numbers;
+}
 
 pub fn print_color(input: &str, color: &String) {
     if color.contains("red") {

@@ -5,7 +5,7 @@ mod constants;
 
 use constants::{STANDARD_COLOR, SUCCESS_COLOR, FAIL_COLOR, MING_DATA_COLOR, WALTON_DATA_COLOR};
 use constants::{AMOUNT_GPU, PORT_NUMBER_START};
-use constants::{print_color, print_44, print_96};
+use constants::{print_color, print_44, print_96, generate_randoms};
 
 fn main() {
     print_color(&"Walton Proxy written in Rust".to_string(), &STANDARD_COLOR.to_owned());
@@ -50,7 +50,7 @@ fn handle_client_ming(mut _walton_exe_socket: TcpStream) {
             .expect("Please check the number of GPU's");
         _ming_socket_temp.set_nodelay(true).unwrap();
         _ming_socket_vector.push(_ming_socket_temp.try_clone().unwrap());
-        print_color(&format!("Connected to ming_run.exe on port: {}", 1),
+        print_color(&format!("Connected to ming_run.exe on port: {}", port_number),
                     &MING_DATA_COLOR.to_owned());
     }
     let mut packets_received_socket = [0; 100];
