@@ -1,22 +1,39 @@
+#![feature(const_string_new)]
+
 use std::net::{TcpListener, TcpStream, Shutdown};
 use std::io::{Read, Write};
 use std::thread;
+use std::env;
 mod constants;
 
 use constants::{STANDARD_COLOR, SUCCESS_COLOR, FAIL_COLOR, MING_DATA_COLOR, WALTON_DATA_COLOR};
-use constants::{AMOUNT_GPU, PORT_NUMBER_START};
-use constants::{print_color, print_44, print_96, generate_randoms};
+use constants::{AMOUNT_GPU, PORT_NUMBER_START, HOST_ADDRESS, SERVER_ADDRESS};
+use constants::{print_color, print_44, print_96, replace_nonce_random, print_args};
 
 fn main() {
     print_color(&"Walton Proxy written in Rust".to_string(), &STANDARD_COLOR.to_owned());
-    thread::spawn(|| {
-        start_server("127.0.0.1", "12125");
+    let args: Vec<_> = env::args().collect();
+    // args: WaltonProxy.exe GPUs, PORT, SERVER, HOST
+    if args.len() <= 1 {
+        print_color("No arguments found, using default arguments", &FAIL_COLOR.to_owned());
+        unsafe { print_args(&AMOUNT_GPU, &PORT_NUMBER_START, &SERVER_ADDRESS, &HOST_ADDRESS); }
+    } else {
+        unsafe {
+            AMOUNT_GPU = args[1].parse().unwrap_or(1);
+            PORT_NUMBER_START = args[2].parse().unwrap_or(12140);
+            SERVER_ADDRESS = args[3].clone();
+            HOST_ADDRESS = args[4].clone();
+            print_args(&AMOUNT_GPU, &PORT_NUMBER_START, &SERVER_ADDRESS, &HOST_ADDRESS);
+        }
+    }
+    thread::spawn(move || {
+        unsafe { start_server("12125") };
     });
-    start_server("127.0.0.1", "10241");
+    unsafe { start_server("10241") };
 }
 
-fn start_server(address: &str, port: &'static str) {
-    let server_address = format!("{}:{}", address, port);
+unsafe fn start_server(port: &'static str) {
+    let server_address = format!("{}:{}", SERVER_ADDRESS, port);
     let listener = TcpListener::bind(&server_address).unwrap();
     print_color(&format!("Server is listening on {}", &server_address), &SUCCESS_COLOR.to_owned());
     print_color("Waiting for a connection..", &SUCCESS_COLOR.to_owned());
@@ -39,14 +56,15 @@ fn start_server(address: &str, port: &'static str) {
     }
 }
 
-fn handle_client_ming(mut _walton_exe_socket: TcpStream) {
+unsafe fn handle_client_ming(mut _walton_exe_socket: TcpStream) {
     _walton_exe_socket.set_nodelay(true).unwrap();
     //Init TcpStream Vector
     let mut _ming_socket_vector: Vec<TcpStream> = Vec::new();
     //Init TcpStreams depending on gpu amount
-    for gpu in 0..*AMOUNT_GPU {
+    for gpu in 0..AMOUNT_GPU {
         let port_number = PORT_NUMBER_START + gpu as i32;
-        let _ming_socket_temp = TcpStream::connect(format!("127.0.0.1:{}", port_number))
+        let host_address = format!("{}:{}", HOST_ADDRESS, port_number);
+        let _ming_socket_temp = TcpStream::connect(&host_address)
             .expect("Please check the number of GPU's");
         _ming_socket_temp.set_nodelay(true).unwrap();
         _ming_socket_vector.push(_ming_socket_temp.try_clone().unwrap());
@@ -80,14 +98,15 @@ fn handle_client_ming(mut _walton_exe_socket: TcpStream) {
     }
 }
 
-fn handle_client_12125(mut _walton_exe_socket: TcpStream){
+unsafe fn handle_client_12125(mut _walton_exe_socket: TcpStream) {
     _walton_exe_socket.set_nodelay(true).unwrap();
     //Init TcpStream Vector
     let mut _ming_socket_vector: Vec<TcpStream> = Vec::new();
     //Init TcpStreams depending on gpu amount
-    for gpu in 0..*AMOUNT_GPU {
+    for gpu in 0..AMOUNT_GPU {
         let port_number = PORT_NUMBER_START + gpu as i32;
-        let _ming_socket_temp = TcpStream::connect(format!("127.0.0.1:{}", port_number))
+        let host_address = format!("{}:{}", HOST_ADDRESS, port_number);
+        let _ming_socket_temp = TcpStream::connect(&host_address)
             .expect("Please check the number of GPU's");
         _ming_socket_temp.set_nodelay(true).unwrap();
         _ming_socket_vector.push(_ming_socket_temp.try_clone().unwrap());
@@ -105,11 +124,12 @@ fn handle_client_12125(mut _walton_exe_socket: TcpStream){
                 let _packets_received = &packets_received_socket.get(0..walton_exe_socket).unwrap();
                 print_color(&format!("Receiving: {:?}", _packets_received.to_vec()),
                             &WALTON_DATA_COLOR.to_owned());
-                print_96(&_packets_received.to_vec());
                 for mut _msocket in &_ming_socket_vector {
-                    let mut p: Vec<u8> = _packets_received.to_vec(); //Replace Difficulty
+                    let mut p: Vec<u8> = _packets_received.to_vec();
+                    replace_nonce_random(&mut p);
 //                            p[45]=200; //255 easiest difficulty
 //                            p[0]=0; // set 0 or 1 for start new block
+                    print_96(&p);
                     _msocket.write_all(&p).unwrap();
                     print_color(&format!("Sent bytes to ming_run.exe running on port: {}", _msocket.peer_addr().unwrap()),
                                 &WALTON_DATA_COLOR.to_owned());

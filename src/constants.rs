@@ -1,7 +1,6 @@
 extern crate ansi_term;
 extern crate byteorder;
 extern crate rand;
-
 use self::rand::Rng;
 use self::byteorder::BigEndian;
 use self::byteorder::ReadBytesExt;
@@ -12,17 +11,16 @@ pub static SUCCESS_COLOR: &'static str = "green";
 pub static FAIL_COLOR: &'static str = "red";
 pub static WALTON_DATA_COLOR: &'static str = "cyan";
 pub static MING_DATA_COLOR: &'static str = "purple";
-pub static AMOUNT_GPU: &'static i32 = &1;
-pub static PORT_NUMBER_START: &'static i32 = &12140;
+pub static mut AMOUNT_GPU: i32 = 1;
+pub static mut PORT_NUMBER_START: i32 = 12140;
+pub static mut SERVER_ADDRESS: String = String::new();
+pub static mut HOST_ADDRESS: String = String::new();
 
-pub fn generate_randoms() -> Vec<i32> {
-    let mut random_numbers: Vec<i32> = Vec::new();
-    for x in 0..1000 {
-        let num = rand::thread_rng().gen_range(100000, 1000000);
-        random_numbers.push(num);
-        println!("Generated {}", num);
+pub fn replace_nonce_random(byte_all: &mut Vec<u8>) {
+    for x in 37..45 {
+        let random = rand::thread_rng().gen_range(1, 255);
+        byte_all[x] = random;
     }
-    return random_numbers;
 }
 
 pub fn print_color(input: &str, color: &String) {
@@ -81,4 +79,16 @@ pub fn print_96(packets: &Vec<u8>) {
                 &SUCCESS_COLOR.to_owned());
     print_color(&format!("  Target  Val: {:?}", &target_val.to_vec()),
                 &SUCCESS_COLOR.to_owned());
+}
+
+pub fn print_args(gpu: &i32, port: &i32, server: &str, host: &str) {
+    print_color("Default Args:", &FAIL_COLOR.to_owned());
+    print_color(&format!("  GPU AMOUNT:      {}", gpu),
+                &FAIL_COLOR.to_owned());
+    print_color(&format!("  PORT START:      {}", port),
+                &FAIL_COLOR.to_owned());
+    print_color(&format!("  SERVER ADDRESS:  {}", server),
+                &FAIL_COLOR.to_owned());
+    print_color(&format!("  HOST ADDRESS:    {}", host),
+                &FAIL_COLOR.to_owned());
 }
