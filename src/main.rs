@@ -1,5 +1,5 @@
 #![feature(const_string_new)]
-
+#![feature(extern_prelude)]
 use std::net::{TcpListener, TcpStream, Shutdown};
 use std::io::{Read, Write};
 use std::thread;
@@ -11,11 +11,17 @@ use constants::{AMOUNT_GPU, PORT_NUMBER_START, HOST_ADDRESS, SERVER_ADDRESS};
 use constants::{print_color, print_44, print_96, replace_nonce_random, print_args};
 
 fn main() {
+    //Enable Windows 10 Ansi Support for CMD
+    let enabled = ansi_term::enable_ansi_support();
     print_color(&"Walton Proxy written in Rust".to_string(), &STANDARD_COLOR.to_owned());
     let args: Vec<_> = env::args().collect();
     // args: WaltonProxy.exe GPUs, PORT, SERVER, HOST
     if args.len() <= 1 {
         print_color("No arguments found, using default arguments", &FAIL_COLOR.to_owned());
+        unsafe {
+            SERVER_ADDRESS = "127.0.0.1".to_string();
+            HOST_ADDRESS = "127.0.0.1".to_string();
+        }
         unsafe { print_args(&AMOUNT_GPU, &PORT_NUMBER_START, &SERVER_ADDRESS, &HOST_ADDRESS); }
     } else {
         unsafe {
