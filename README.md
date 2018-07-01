@@ -22,8 +22,8 @@ Compiled with newest nightly Rust version.
     -s <server>        Set server address: Example: '127.0.0.1'           ->Default:'127.0.0.1'
 ```
 ### EXAMPLE:
-    ```
-    WaltonProxy.exe -g 2 -p 12126 -c "127.0.0.1" -s "127.0.0.1" -d
-    ```
-    -> Starts WaltonProxy for 2 GPU's that start on port 12126. Server Address is 127.0.0.1 
+Starts WaltonProxy for 2 GPU's that start on port 12126. Server Address is 127.0.0.1 
        and Client Address too. Debug LOG enabled.
+```
+    WaltonProxy.exe -g 2 -p 12126 -c "127.0.0.1" -s "127.0.0.1" -d
+```
