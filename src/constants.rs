@@ -12,9 +12,25 @@ pub static FAIL_COLOR: &'static str = "red";
 pub static WALTON_DATA_COLOR: &'static str = "cyan";
 pub static MING_DATA_COLOR: &'static str = "purple";
 pub static mut AMOUNT_GPU: i32 = 1;
-pub static mut PORT_NUMBER_START: i32 = 12140;
+pub static mut PORT_NUMBER_START: i32 = 12126;
+pub static mut LOG_LEVEL: LogLevel = LogLevel::Info;
 pub static mut SERVER_ADDRESS: String = String::new();
-pub static mut HOST_ADDRESS: String = String::new();
+pub static mut CLIENT_ADDRESS: String = String::new();
+
+#[derive(PartialEq)]
+pub enum LogLevel {
+    Debug,
+    Info,
+}
+
+impl LogLevel {
+    pub fn as_str(&self) -> &'static str {
+        match *self {
+            LogLevel::Debug => "Debug",
+            LogLevel::Info => "Info"
+        }
+    }
+}
 
 pub fn replace_nonce_random(byte_all: &mut Vec<u8>) {
     for x in 37..45 {
@@ -45,50 +61,60 @@ pub fn print_block(mut slice: &[u8]) {
 }
 
 pub fn print_44(packets: &Vec<u8>) {
-    print_color("Formatted:", &MING_DATA_COLOR.to_owned());
-    let unidentified_1 = packets.get(0..2).unwrap();
-    let unidentified_2 = packets.get(2..4).unwrap();
-    let input = packets.get(4..36).unwrap();
-    let input_nonce = packets.get(36..44).unwrap();
-    print_color(&format!("  Unidentified_1: {:?}", &unidentified_1.to_vec()),
-                &STANDARD_COLOR.to_owned());
-    print_color(&format!("  Unidentified_2: {:?}", &unidentified_2.to_vec()),
-                &STANDARD_COLOR.to_owned());
-    print_color(&format!("  Input Value   : {:?}", &input.to_vec()),
-                &STANDARD_COLOR.to_owned());
-    print_color(&format!("  Input Nonce   : {:?}", &input_nonce.to_vec()),
-                &STANDARD_COLOR.to_owned());
+    unsafe {
+        if LOG_LEVEL.as_str() == "Debug" {
+            print_color("Formatted:", &MING_DATA_COLOR.to_owned());
+            let unidentified_1 = packets.get(0..2).unwrap();
+            let unidentified_2 = packets.get(2..4).unwrap();
+            let input = packets.get(4..36).unwrap();
+            let input_nonce = packets.get(36..44).unwrap();
+            print_color(&format!("  Unidentified_1: {:?}", &unidentified_1.to_vec()),
+                        &STANDARD_COLOR.to_owned());
+            print_color(&format!("  Unidentified_2: {:?}", &unidentified_2.to_vec()),
+                        &STANDARD_COLOR.to_owned());
+            print_color(&format!("  Input Value   : {:?}", &input.to_vec()),
+                        &STANDARD_COLOR.to_owned());
+            print_color(&format!("  Input Nonce   : {:?}", &input_nonce.to_vec()),
+                        &STANDARD_COLOR.to_owned());
+        }
+    }
 }
 
 pub fn print_96(packets: &Vec<u8>) {
-    print_color("Formatted:", &WALTON_DATA_COLOR.to_owned());
-    let block_number = packets.get(1..5).unwrap();  //Byte Index 1-4 - Index 0 = set/stop
-    let count = packets.get(77..85).unwrap(); // Count is constant
-    let input_nonce = packets.get(37..45).unwrap();
-    let algtion_val = packets.get(85..96).unwrap();
-    let input_val = packets.get(5..37).unwrap();
-    let target_val = packets.get(45..77).unwrap();
-    print_block(&block_number);
-    print_color(&format!("  Count Val  : {:?}", &count.to_vec()),
-                &SUCCESS_COLOR.to_owned());
-    print_color(&format!("  Input Nonce: {:?}", &input_nonce.to_vec()),
-                &SUCCESS_COLOR.to_owned());
-    print_color(&format!("  Algtion Val: {:?}", &algtion_val.to_vec()),
-                &SUCCESS_COLOR.to_owned());
-    print_color(&format!("  Input   Val: {:?}", &input_val.to_vec()),
-                &SUCCESS_COLOR.to_owned());
-    print_color(&format!("  Target  Val: {:?}", &target_val.to_vec()),
-                &SUCCESS_COLOR.to_owned());
+    unsafe {
+        if LOG_LEVEL.as_str() == "Debug" {
+            print_color("Formatted:", &WALTON_DATA_COLOR.to_owned());
+            let block_number = packets.get(1..5).unwrap();  //Byte Index 1-4 - Index 0 = set/stop
+            let count = packets.get(77..85).unwrap(); // Count is constant
+            let input_nonce = packets.get(37..45).unwrap();
+            let algtion_val = packets.get(85..96).unwrap();
+            let input_val = packets.get(5..37).unwrap();
+            let target_val = packets.get(45..77).unwrap();
+            print_block(&block_number);
+            print_color(&format!("  Count Val  : {:?}", &count.to_vec()),
+                        &SUCCESS_COLOR.to_owned());
+            print_color(&format!("  Input Nonce: {:?}", &input_nonce.to_vec()),
+                        &SUCCESS_COLOR.to_owned());
+            print_color(&format!("  Algtion Val: {:?}", &algtion_val.to_vec()),
+                        &SUCCESS_COLOR.to_owned());
+            print_color(&format!("  Input   Val: {:?}", &input_val.to_vec()),
+                        &SUCCESS_COLOR.to_owned());
+            print_color(&format!("  Target  Val: {:?}", &target_val.to_vec()),
+                        &SUCCESS_COLOR.to_owned());
+        }
+    }
 }
 
-pub fn print_args(gpu: &i32, port: &i32, server: &str, host: &str) {
-    print_color("Default Args:", &FAIL_COLOR.to_owned());
-    print_color(&format!("  GPU AMOUNT:      {}", gpu),
-                &FAIL_COLOR.to_owned());
-    print_color(&format!("  PORT START:      {}", port),
-                &FAIL_COLOR.to_owned());
-    print_color(&format!("  SERVER ADDRESS:  {}", server),
-                &FAIL_COLOR.to_owned());
-    print_color(&format!("  HOST ADDRESS:    {}", host),
-                &FAIL_COLOR.to_owned());
+pub fn print_args(gpu: &i32, port: &i32, server: &str, host: &str, log: &str) {
+    print_color("Args successfully set:", &STANDARD_COLOR.to_owned());
+    print_color(&format!("  GPU AMOUNT:        {}", gpu),
+                &STANDARD_COLOR.to_owned());
+    print_color(&format!("  PORT START:        {}", port),
+                &STANDARD_COLOR.to_owned());
+    print_color(&format!("  SERVER ADDRESS:    {}", server),
+                &STANDARD_COLOR.to_owned());
+    print_color(&format!("  CLIENT ADDRESS:    {}", host),
+                &STANDARD_COLOR.to_owned());
+    print_color(&format!("  LOG LEVEL     :    {}", log),
+                &STANDARD_COLOR.to_owned());
 }

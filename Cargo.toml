@@ -7,3 +7,4 @@ authors = ["René Meyer <36350532+BuggerSee@users.noreply.github.com>"]
 ansi_term = "0.11"
 byteorder = "1.2.3"
 rand = "0.5.2"
+clap = "2.32.0"
